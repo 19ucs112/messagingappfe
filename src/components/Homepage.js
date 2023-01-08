@@ -3,7 +3,10 @@ import { useNavigate } from "react-router";
 import messageService from "../service/messageService";
 function Homepage() {
   const [messagedetails, setmessagedetails] = useState([]);
-  const [option, setoption] = useState(false)
+  const [option, setoption] = useState(false);
+  const [data, setdata] = useState({
+    line: "",
+  });
   const history = useNavigate();
   function handlepickup(value) {
     history("/pickup", {
@@ -24,39 +27,77 @@ function Homepage() {
       return value.employee.employeeId;
     }
   }
-  function handlepending(e){
-    if(e.target.value !== "All")
-    {
-        console.log(e.target.value)
-        setoption(true)
-        messageService.getpendingmessages(e.target.value).then((res)=>{
-            setmessagedetails(res.data);
-        })
+  function handlepending(e) {
+    if (e.target.value !== "All") {
+      console.log(e.target.value);
+      setoption(true);
+      messageService.getpendingmessages(e.target.value).then((res) => {
+        setmessagedetails(res.data);
+      });
+    } else {
+      setoption(false);
     }
-    else
-    {
-        setoption(false)
+  }
+  function handleclick() {
+    if (data.line.length !== 0) {
+      setoption(true);
+      messageService.getmessagebyword(data.line).then((res) => {
+        setmessagedetails(res.data);
+      });
+    } else {
+      setoption(false);
     }
-   
+  }
+  function handlechange(e) {
+    const newData = { ...data };
+    newData[e.target.id] = e.target.value;
+    setdata(newData);
   }
   useEffect(() => {
-    if(option === false){
-        messageService.getallmessages().then((res) => {
-            setmessagedetails(res.data);
-          });
+    if (option === false) {
+      messageService.getallmessages().then((res) => {
+        setmessagedetails(res.data);
+      });
     }
-});
+  });
   return (
     <div className="container">
-      <h1 className="text-center">All messages</h1>
-      <div className="form-group col-md-4">
-        <label>sort by:</label>
-      <select id="inputState" className="form-control" onChange={(e)=>handlepending(e)}>
-        <option defaultValue="All">All</option>
-        <option value="pending">pending</option>
-        <option value="replied">replied</option>
-      </select>
-    </div>
+      <h1 className="text-center">Customer Requests</h1>
+      <label>Search Messages</label>
+      <div className="row">
+        <div className="form-group col-md-4">
+          <div className="input-group rounded">
+            <input
+              type="search"
+              name="line"
+              id="line"
+              className="form-control rounded"
+              placeholder="Search"
+              aria-label="Search"
+              aria-describedby="search-addon"
+              onChange={(e) => handlechange(e)}
+            />
+            <button className="btn btn-primary" onClick={() => handleclick()}>
+              search
+            </button>
+          </div>
+        </div>
+      </div>
+      <div className="row">
+        <div className="form-group col-md-4">
+          <label>sort by:</label>
+          <select
+            id="inputState"
+            className="form-control"
+            onChange={(e) => handlepending(e)}
+          >
+            <option defaultValue="All">All</option>
+            <option value="pending">pending</option>
+            <option value="replied">replied</option>
+          </select>
+        </div>
+      </div>
+
       <table className="table">
         <thead>
           <tr>
